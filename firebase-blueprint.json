@@ -1,0 +1,139 @@
+{
+  "entities": {
+    "ReconciliationRecord": {
+      "title": "Reconciliation Record",
+      "description": "Represents an operations task reconciliation record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "user": { "type": "string" },
+        "office": { "type": "string" },
+        "team": { "type": "string" },
+        "points": { "type": "number" },
+        "errors": { "type": "number" },
+        "errorPercentage": { "type": "number" },
+        "status": { "type": "string", "enum": ["MATCHED", "HIGH PRIORITY", "PENDING"] }
+      },
+      "required": ["id", "user", "office", "team", "points", "errors", "errorPercentage", "status"]
+    },
+    "IPARecord": {
+      "title": "IPA Record",
+      "description": "Represents an analyst task throughput record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "team": { "type": "string" },
+        "tasks": { "type": "number" }
+      },
+      "required": ["id", "name", "team", "tasks"]
+    },
+    "TeamPerformance": {
+      "title": "Team Performance",
+      "description": "Represents regional/team performance summary",
+      "type": "object",
+      "properties": {
+        "teamName": { "type": "string" },
+        "efficiency": { "type": "number" },
+        "errorRate": { "type": "number" },
+        "output": { "type": "string" },
+        "lead": { "type": "string" }
+      },
+      "required": ["teamName", "efficiency", "errorRate", "output", "lead"]
+    },
+    "AMAlert": {
+      "title": "AM Alert",
+      "description": "Represents an Account Manager portfolio alert",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "alertsCount": { "type": "number" },
+        "accuracyCurrent": { "type": "number" },
+        "accuracyTarget": { "type": "number" },
+        "criticality": { "type": "string", "enum": ["High Risk", "Stable", "Immediate Action"] }
+      },
+      "required": ["id", "name", "role", "alertsCount", "accuracyCurrent", "accuracyTarget", "criticality"]
+    },
+    "PortfolioLog": {
+      "title": "Portfolio Log",
+      "description": "Represents an invoice or discrepancy log entry",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "date": { "type": "string" },
+        "analystName": { "type": "string" },
+        "vendorName": { "type": "string" },
+        "taskType": { "type": "string" },
+        "status": { "type": "string", "enum": ["MATCHING", "ALERT", "PENDING"] },
+        "accuracy": { "type": "number" },
+        "ir": { "type": "number" },
+        "reco": { "type": "number" },
+        "time": { "type": "string" },
+        "errors": { "type": "number" },
+        "fr": { "type": "number" },
+        "qres": { "type": "number" }
+      },
+      "required": ["id", "date", "analystName", "vendorName", "taskType", "status", "accuracy"]
+    },
+    "ProductionTrend": {
+      "title": "Production Trend",
+      "description": "Represents production curve point throughout the day",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "value": { "type": "number" }
+      },
+      "required": ["name", "value"]
+    },
+    "RealtimeNotification": {
+      "title": "Realtime Notification",
+      "description": "Represents a real-time notification stored in Firestore",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "type": "string", "enum": ["upload", "vendor", "error", "accuracy", "report"] },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "read": { "type": "boolean" }
+      },
+      "required": ["id", "type", "title", "message", "timestamp", "read"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/teams/{teamId}": {
+      "schema": "TeamPerformance",
+      "description": "Consolidated regional team stats"
+    },
+    "/analysts/{analystId}": {
+      "schema": "IPARecord",
+      "description": "Analyst productivity logs"
+    },
+    "/vendors/{vendorId}": {
+      "schema": "Vendor",
+      "description": "Vendors list"
+    },
+    "/logs/{logId}": {
+      "schema": "PortfolioLog",
+      "description": "Detailed portfolio logs of completed and active tasks"
+    },
+    "/dashboardStats/{statId}": {
+      "schema": "DashboardStat",
+      "description": "Dashboard stats collections containing reconciliation_records, am_alerts, and production_trend"
+    },
+    "/settings/{settingId}": {
+      "schema": "Setting",
+      "description": "App settings like Google Sheet integration URL"
+    },
+    "/notifications/{notificationId}": {
+      "schema": "RealtimeNotification",
+      "description": "Real-time notifications synced in Firestore"
+    }
+  }
+}

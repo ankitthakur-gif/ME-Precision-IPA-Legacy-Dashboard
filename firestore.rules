@@ -1,0 +1,169 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isDomainUser() {
+      return isSignedIn() && 
+             request.auth.token.email_verified == true && (
+               request.auth.token.email.endsWith('@marginedge.com') ||
+               request.auth.token.email == 'ankit.thakur@marginedge.com'
+             );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Validation helpers
+    function isValidReconciliationRecord(data) {
+      return data.id is string && data.id.size() <= 64 &&
+             data.user is string && data.user.size() <= 128 &&
+             data.office is string && data.office.size() <= 64 &&
+             data.team is string && data.team.size() <= 64 &&
+             data.points is number && data.points >= 0 &&
+             data.errors is number && data.errors >= 0 &&
+             data.errorPercentage is number && data.errorPercentage >= 0 &&
+             data.status in ['MATCHED', 'HIGH PRIORITY', 'PENDING'];
+    }
+
+    function isValidIPARecord(data) {
+      return data.id is string && data.id.size() <= 64 &&
+             data.name is string && data.name.size() <= 128 &&
+             data.team is string && data.team.size() <= 64 &&
+             data.tasks is number && data.tasks >= 0;
+    }
+
+    function isValidTeamPerformance(data) {
+      return data.teamName is string && data.teamName.size() <= 128 &&
+             data.efficiency is number && data.efficiency >= 0 &&
+             data.errorRate is number && data.errorRate >= 0 &&
+             data.output is string && data.output.size() <= 64 &&
+             data.lead is string && data.lead.size() <= 128;
+    }
+
+    function isValidAMAlert(data) {
+      return data.id is string && data.id.size() <= 64 &&
+             data.name is string && data.name.size() <= 128 &&
+             data.role is string && data.role.size() <= 128 &&
+             data.alertsCount is number && data.alertsCount >= 0 &&
+             data.accuracyCurrent is number && data.accuracyCurrent >= 0 &&
+             data.accuracyTarget is number && data.accuracyTarget >= 0 &&
+             data.criticality in ['High Risk', 'Stable', 'Immediate Action'];
+    }
+
+    function isValidPortfolioLog(data) {
+      return data.id is string && data.id.size() <= 64 &&
+             data.date is string && data.date.size() <= 64 &&
+             data.analystName is string && data.analystName.size() <= 128 &&
+             data.vendorName is string && data.vendorName.size() <= 128 &&
+             data.taskType is string && data.taskType.size() <= 128 &&
+             data.status in ['MATCHING', 'ALERT', 'PENDING'] &&
+             data.accuracy is number && data.accuracy >= 0;
+    }
+
+    function isValidProductionTrend(data) {
+      return data.name is string && data.name.size() <= 64 &&
+             data.value is number && data.value >= 0;
+    }
+
+    // Collection matches with robust access control
+    match /teams/{teamId} {
+      allow read: if isSignedIn();
+      allow create, update: if isDomainUser() && isValidId(teamId) && isValidTeamPerformance(incoming());
+      allow delete: if isDomainUser() && isValidId(teamId);
+    }
+
+    match /analysts/{analystId} {
+      allow read: if isSignedIn();
+      allow create, update: if isDomainUser() && isValidId(analystId) && isValidIPARecord(incoming());
+      allow delete: if isDomainUser() && isValidId(analystId);
+    }
+
+    match /vendors/{vendorId} {
+      allow read: if isSignedIn();
+      allow create, update: if isDomainUser() && isValidId(vendorId);
+      allow delete: if isDomainUser() && isValidId(vendorId);
+    }
+
+    match /logs/{logId} {
+      allow read: if isSignedIn();
+      allow create, update: if isDomainUser() && isValidId(logId) && isValidPortfolioLog(incoming());
+      allow delete: if isDomainUser() && isValidId(logId);
+    }
+
+    match /backups/{docId} {
+      allow read: if isSignedIn();
+      allow create, update: if isDomainUser() && isValidId(docId);
+      allow delete: if isDomainUser() && isValidId(docId);
+    }
+
+    match /dashboardStats/{docId} {
+      allow read: if isSignedIn();
+      allow create, update: if isDomainUser() && isValidId(docId);
+      allow delete: if isDomainUser() && isValidId(docId);
+    }
+
+    match /settings/{docId} {
+      allow read: if isSignedIn();
+      allow create, update: if isDomainUser() && isValidId(docId);
+      allow delete: if isDomainUser() && isValidId(docId);
+    }
+
+    match /users/{userId} {
+      allow read, create, update: if isSignedIn() && (request.auth.uid == userId || isDomainUser());
+      allow delete: if isDomainUser();
+    }
+
+    match /invoices/{invoiceId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isDomainUser() && isValidId(invoiceId);
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isSignedIn() && isValidId(notificationId);
+    }
+
+    match /presets/{presetId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isDomainUser() && isValidId(presetId);
+    }
+
+    match /excel_datasets/{docId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isDomainUser() && isValidId(docId);
+    }
+
+    match /excel_audit_logs/{docId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isDomainUser() && isValidId(docId);
+    }
+
+    match /excel_backups/{docId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isDomainUser() && isValidId(docId);
+    }
+
+    match /test/{docId} {
+      allow read: if true;
+    }
+  }
+}

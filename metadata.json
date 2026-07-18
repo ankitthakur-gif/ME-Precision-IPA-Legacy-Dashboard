@@ -1,0 +1,6 @@
+{
+  "name": "MarginEdge Precision-ME",
+  "description": "Enterprise-grade operational and financial auditing platform for real-time tracking, live sync reconciliation, and detailed portfolio logs.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
